@@ -1,0 +1,7 @@
+[issues]
+[issues.issue1]
+dst_path = ""
+content = "string"
+[issues.issue2]
+dst_path = ""
+content = "string"

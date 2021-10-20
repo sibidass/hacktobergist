@@ -1,0 +1,9 @@
+---
+author: {{repo_link}}
+title: {{issue_title}}
+date: {{time}}
+issuelink: {{issue_url}}
+tags:
+  - issue
+  - {{language}}
+---

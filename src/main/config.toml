@@ -1,0 +1,21 @@
+[siteupdater]
+templates_location = "/Users/ssivadas/sideprojects/hacktobergist/src/main/templates"
+[siteupdater.issues]
+db_table = "HacktoberIssues"
+db_partition_key = "language"
+dest_path = "/Users/ssivadas/sideprojects/hacktobergist/ui/public/issues"
+file_prefix = "issue"
+template_files = ["issue_head.yaml", "issue_index.yaml"]
+data_file = "issue_page.md"
+[siteupdater.leaderboard]
+db_table = "usertable"
+file_prefix = "user"
+[db]
+issues_table = "HacktoberIssues"
+
+[scheduled_jobs]
+[scheduled_jobs.issue_fetcher]
+start_date = "2021-10-01"
+schedule = "15:13"
+[scheduled_jobs.site_updater_issue]
+schedule = "04:02"
