@@ -29,6 +29,7 @@ jobs:
     # CircleCI will report the results back to your VCS provider.
     steps:
       - checkout
+      - echo ${CIRCLE_BRANCH}
       - python/install-packages:
           pkg-manager: pip
           app-dir: ~/src/main/
