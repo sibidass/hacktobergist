@@ -29,6 +29,8 @@ jobs:
     # CircleCI will report the results back to your VCS provider.
     steps:
       - checkout
+      - run: ls -al
+      - run: find ./ -iname "requirements.txt"
       - python/install-packages:
           pkg-manager: pip
           app-dir: ~/hacktobergist/src/main
