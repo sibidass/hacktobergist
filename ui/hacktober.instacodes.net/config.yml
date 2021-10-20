@@ -1,0 +1,86 @@
+baseURL: http://hacktobergist.instacodes.net/
+languageCode: en-us
+title: HacktoberGist
+theme: "PaperMod"
+paginate: 30
+
+enableRobotsTXT: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+minify:
+  disableXML: true
+  minifyOutput: true
+
+params:
+  env: production
+  title: HacktoberFest Gists
+  description: "HacktoberFest Issues"
+  keywords: [HacktoberFest, GithubIssues, HacktoberIssues]
+  DateFormat: "January 2, 2006"
+  defaultTheme: auto # dark, light
+  disableThemeToggle: false
+
+  ShowReadingTime: false
+  ShowShareButtons: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: false
+  disableSpecial1stPost: false
+  disableScrollToTop: false
+  comments: false
+  hidemeta: false
+  hideSummary: false
+  showtoc: false
+  tocopen: false
+
+  assets:
+    # disableHLJS: true # to disable highlight.js
+    # disableFingerprinting: true
+    favicon: "<link / abs url>"
+    favicon16x16: "<link / abs url>"
+    favicon32x32: "<link / abs url>"
+    apple_touch_icon: "<link / abs url>"
+    safari_pinned_tab: "<link / abs url>"
+
+  label:
+    text: "HacktoberGist"
+    icon: /apple-touch-icon.png
+    iconHeight: 35
+
+  homeInfoParams:
+    Title: "Welcome to HacktoberFest"
+    Content: This project provides a gist of recent open and unassigned issues in HacktoberFest that users can pick on. Users can also subscribe to a daily digest. The site is served statically and refreshed in 6 hours for fast serving.
+
+  socialIcons:
+    - name: github
+      url: "https://github.com/ssivadas/HacktoberGist"
+
+  fuseOpts:
+    isCaseSensitive: false
+    shouldSort: true
+    location: 0
+    distance: 1000
+    threshold: 0.4
+    minMatchCharLength: 0
+    keys: ["title", "permalink", "summary", "content"]
+
+menu:
+  main:
+    - identifier: issue
+      name: Issues
+      url: /issues/
+      weight: 10
+    - identifier: leaderboard
+      name: LeaderBoard
+      url: /leaderboard/
+      weight: 20
+    - identifier: dailydigest
+      name: DailyDigest
+      url: /dd/
+      weight: 30
+    - identifier: hacktoberfest
+      name: HacktoberFest
+      url: https://hacktoberfest.com
+      weight: 40
