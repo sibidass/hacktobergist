@@ -35,14 +35,13 @@ jobs:
               echo "listing current dir"
               pwd
               ls -al
-              hugo -d /tmp/workspace/public_html
+              cd ~/project/ui/ && hugo -d /tmp/workspace/public_html
           name: "Install hugo"
       -
         persist_to_workspace:
           paths:
             - public_html
           root: *workspace_root
-    working_directory: ~/project/ui
   deploy-serverless:
     docker:
       -
