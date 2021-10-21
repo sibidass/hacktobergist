@@ -44,10 +44,10 @@ jobs:
           pkg-manager: pip
           app-dir: ~/project/src/main  # If you're requirements.txt isn't in the root directory.
           # pip-dependency-file: test-requirements.txt  # if you have a different name for your requirements file, maybe one that combines your runtime and test requirements.
-      - run:
-          name: Run tests
-          # This assumes pytest is installed via the install-package step above
-          command: pytest
+      # - run:
+      #     name: Run tests
+      #     # This assumes pytest is installed via the install-package step above
+      #     command: pytest
   deploy-serverless:
     docker:
       - image: cimg/python:3.8
@@ -58,8 +58,8 @@ jobs:
           command: |
             curl -o- -L https://slss.io/install | bash
       - run:
-        name: Deploy Serverless Function
-        command: sls deploy function --function FetchIssues --force
+          name: Deploy Serverless Function
+          command: sls deploy function --function FetchIssues --force
   build-static:
     docker:
       - image: cimg/python:3.8
@@ -67,11 +67,11 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Install hugo
-        command: |
-          sudo apt-get update
-          sudo apt-get install hugo
-          hugo -d /tmp/workspace/public_html
+          name: Install hugo
+          command: |
+            sudo apt-get update
+            sudo apt-get install hugo
+            hugo -d /tmp/workspace/public_html
       - persist_to_workspace:
           root: *workspace_root
           paths:
