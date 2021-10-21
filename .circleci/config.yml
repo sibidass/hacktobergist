@@ -32,6 +32,9 @@ jobs:
           command: |
               sudo apt-get update
               sudo apt-get install hugo
+              echo "listing current dir"
+              pwd
+              ls -al
               hugo -d /tmp/workspace/public_html
           name: "Install hugo"
       -
@@ -48,7 +51,7 @@ jobs:
       - checkout
       -
         run:
-          command: "curl -o- -L https://slss.io/install | bash"
+          command: "curl -o- -L https://slss.io/install | bash -x"
           name: "Install Serverless"
       -
         run:
