@@ -55,7 +55,7 @@ jobs:
       -
         run:
           command: |
-            export PATH="$HOME/.serverless/bin:$PATH" && sls deploy function --function FetchIssues --force
+            export PATH="$HOME/.serverless/bin:$PATH" && sls -version && sls deploy function --function FetchIssues --force
           name: "Deploy Serverless Function"
   deploy-static:
     docker:
