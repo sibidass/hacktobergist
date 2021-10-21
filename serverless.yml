@@ -37,7 +37,7 @@ provider:
   stackPolicy:
     - Effect: Allow
       Principal: '*'
-      Action: 'Update:'
+      Action: 'Update:*'
       Resource: '*'
     - Effect: Deny
       Principal: '*'
