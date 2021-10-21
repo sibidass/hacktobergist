@@ -1,121 +1,86 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/2.0/configuration-reference
+---
 version: 2.1
-
-# Orbs are reusable packages of CircleCI configuration that you may share across projects, enabling you to create encapsulated, parameterized commands, jobs, and executors that can be used across multiple projects.
-# See: https://circleci.com/docs/2.0/orb-intro/
-orbs:
-  # The python orb contains a set of prepackaged CircleCI configuration you can use repeatedly in your configuration files
-  # Orb commands and jobs help you with common scripting around a language/tool
-  # so you dont have to copy and paste it everywhere.
-  # See the orb documentation here: https://circleci.com/developer/orbs/orb/circleci/python
-  python: circleci/python@1.2
-
-# Yaml References enable us to DRY out our config by sharing variables across multiple jobs.
-# In this case, we are commonly using the "workspaces" feature to share
-# build artifacts and files across jobs. For example, we build our Javascript
-# persist it to a workspace to be made available when the Jekyll site builds.
 references:
-  workspace_root: &workspace_root
-    /tmp/workspace
   attach_workspace: &attach_workspace
     attach_workspace:
       at: *workspace_root
+  workspace_root: &workspace_root
+    /tmp/workspace
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  build: # This is the name of the job, feel free to change it to better match what you're trying to do!
-    # These next lines defines a Docker executors: https://circleci.com/docs/2.0/executor-types/
-    # You can specify an image from Dockerhub or use one of the convenience images from CircleCI's Developer Hub
-    # A list of available CircleCI Docker convenience images are available here: https://circleci.com/developer/images/image/cimg/python
-    # The executor is the environment in which the steps below will be executed - below will use a python 3.8 container
-    # Change the version below to your required version of python
+  build:
     docker:
-      - image: cimg/python:3.8
-    # Checkout the code as the first step. This is a dedicated CircleCI step.
-    # The python orb's install-packages step will install the dependencies from a Pipfile via Pipenv by default.
-    # Here we're making sure we use just use the system-wide pip. By default it uses the project root's requirements.txt.
-    # Then run your tests!
-    # CircleCI will report the results back to your VCS provider.
+      -
+        image: "cimg/python:3.8"
     steps:
       - checkout
-      - python/install-packages:
+      -
+        python/install-packages:
+          app-dir: ~/project/src/main
           pkg-manager: pip
-          app-dir: ~/project/src/main  # If you're requirements.txt isn't in the root directory.
-          # pip-dependency-file: test-requirements.txt  # if you have a different name for your requirements file, maybe one that combines your runtime and test requirements.
-      # - run:
-      #     name: Run tests
-      #     # This assumes pytest is installed via the install-package step above
-      #     command: pytest
-  deploy-serverless:
-    docker:
-      - image: cimg/python:3.8
-    steps:
-      - checkout
-      - run:
-          name: Install Serverless
-          command: |
-            curl -o- -L https://slss.io/install | bash
-      - run:
-          name: Deploy Serverless Function
-          command: sls deploy function --function FetchIssues --force
   build-static:
     docker:
-      - image: cimg/python:3.8
-    working_directory: ~/project/ui
+      -
+        image: "cimg/python:3.8"
     steps:
       - checkout
-      - run:
-          name: Install hugo
+      -
+        run:
           command: |
-            sudo apt-get update
-            sudo apt-get install hugo
-            hugo -d /tmp/workspace/public_html
-      - persist_to_workspace:
-          root: *workspace_root
+              sudo apt-get update
+              sudo apt-get install hugo
+              hugo -d /tmp/workspace/public_html
+          name: "Install hugo"
+      -
+        persist_to_workspace:
           paths:
             - public_html
-
+          root: *workspace_root
+    working_directory: ~/project/ui
+  deploy-serverless:
+    docker:
+      -
+        image: "cimg/python:3.8"
+    steps:
+      - checkout
+      -
+        run:
+          command: "curl -o- -L https://slss.io/install | bash"
+          name: "Install Serverless"
+      -
+        run:
+          command: "sls deploy function --function FetchIssues --force"
+          name: "Deploy Serverless Function"
   deploy-static:
     docker:
-      - image: cimg/python:3.8
+      -
+        image: "cimg/python:3.8"
     steps:
       - *attach_workspace
-      - add_ssh_keys:
-         fingerprints:
-          - "70:44:86:3c:bb:f6:eb:f1:82:8a:85:8d:a5:3b:8d:08"
+      -
+        add_ssh_keys:
+          fingerprints:
+            - "70:44:86:3c:bb:f6:eb:f1:82:8a:85:8d:a5:3b:8d:08"
       - run:
-        name: Deploy Over SSH
-        command: |
-          rsync -avz /tmp/workspace/public_html $SSH_USER@$SSH_HOST:/tmp/
-# ssh $SSH_USER@$SSH_HOST "<remote deploy command>"
+          command: "rsync -avz /tmp/workspace/public_html $SSH_USER@$SSH_HOST:/tmp/"
+          name: "Deploy Over SSH"
 
-  # deploy:
-  #  machine:
-  #    enabled: true
-  #  steps:
-  #    - add_ssh_keys:
-  #        fingerprints:
-  #         - "70:44:86:3c:bb:f6:eb:f1:82:8a:85:8d:a5:3b:8d:08"
-
-# Invoke jobs via workflows
-# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  build-and-deploy: # This is the name of the workflow, feel free to change it to better match your workflow.
-    # Inside the workflow, you define the jobs you want to run.
+  build-and-deploy:
     jobs:
       - build
-      - deploy-serverless:
-          requires:
-            - build
+      -
+        deploy-serverless:
           filters:
             branches:
               only: main
+          requires:
+            - build
       - build-static
-      - deploy-static:
-           requires:
-             - build-static # only deploy once build-static job has completed
-           filters:
-             branches:
-               only: ui # only deploy on the ui branch
+      -
+        deploy-static:
+          filters:
+            branches:
+              only: ui
+          requires:
+            - build-static
