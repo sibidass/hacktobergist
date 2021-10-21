@@ -55,8 +55,7 @@ jobs:
       -
         run:
           command: |
-            cat /home/circleci/.bashrc
-            source /home/circleci/.bashrc && sls deploy function --function FetchIssues --force
+            export PATH="$HOME/.serverless/bin:$PATH" && sls deploy function --function FetchIssues --force
           name: "Deploy Serverless Function"
   deploy-static:
     docker:
