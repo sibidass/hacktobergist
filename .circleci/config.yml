@@ -35,7 +35,7 @@ jobs:
               echo "listing current dir"
               pwd
               ls -al
-              cd ~/project/ui/hacktober.istacodes.net && hugo -d /tmp/workspace/public_html
+              cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
           name: "Install hugo"
       -
         persist_to_workspace:
