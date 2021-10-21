@@ -71,6 +71,8 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install rsync
+            mkdir -p ~/.ssh
+            ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
           name: "Installing rsync"
       - run:
           command: "rsync -avz /tmp/workspace/public_html $SSH_USER@$SSH_HOST:/tmp/"
