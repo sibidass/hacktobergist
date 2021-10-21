@@ -56,8 +56,7 @@ jobs:
         run:
           command: |
             source /home/circleci/.bashrc
-            echo $HOME
-            ls -al $HOME/.serverless/bin
+            echo $PATH
             sls deploy function --function FetchIssues --force
           name: "Deploy Serverless Function"
   deploy-static:
