@@ -7,6 +7,9 @@ references:
     attach_workspace:
       at: *workspace_root
 
+orbs:
+  python: circleci/python@1.2
+
 jobs:
   build:
     docker:
