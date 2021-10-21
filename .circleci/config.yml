@@ -11,10 +11,21 @@ orbs:
   # See the orb documentation here: https://circleci.com/developer/orbs/orb/circleci/python
   python: circleci/python@1.2
 
+# Yaml References enable us to DRY out our config by sharing variables across multiple jobs.
+# In this case, we are commonly using the "workspaces" feature to share
+# build artifacts and files across jobs. For example, we build our Javascript
+# persist it to a workspace to be made available when the Jekyll site builds.
+references:
+  workspace_root: &workspace_root
+    /tmp/workspace
+  attach_workspace: &attach_workspace
+    attach_workspace:
+      at: *workspace_root
+
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  build-and-test: # This is the name of the job, feel free to change it to better match what you're trying to do!
+  build: # This is the name of the job, feel free to change it to better match what you're trying to do!
     # These next lines defines a Docker executors: https://circleci.com/docs/2.0/executor-types/
     # You can specify an image from Dockerhub or use one of the convenience images from CircleCI's Developer Hub
     # A list of available CircleCI Docker convenience images are available here: https://circleci.com/developer/images/image/cimg/python
@@ -29,22 +40,82 @@ jobs:
     # CircleCI will report the results back to your VCS provider.
     steps:
       - checkout
-      - run: pwd
-      - run: find ./ -iname "requirements.txt"
       - python/install-packages:
           pkg-manager: pip
-          app-dir: ~/project/src/main
-          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
+          app-dir: ~/project/src/main  # If you're requirements.txt isn't in the root directory.
           # pip-dependency-file: test-requirements.txt  # if you have a different name for your requirements file, maybe one that combines your runtime and test requirements.
       - run:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
           command: pytest
+  deploy-serverless:
+    docker:
+      - image: cimg/python:3.8
+    steps:
+      - checkout
+      - run:
+          name: Install Serverless
+          command: |
+            curl -o- -L https://slss.io/install | bash
+      - run:
+        name: Deploy Serverless Function
+        command: sls deploy function --function FetchIssues --force
+  build-static:
+    docker:
+      - image: cimg/python:3.8
+    working_directory: ~/project/ui
+    steps:
+      - checkout
+      - run:
+        name: Install hugo
+        command: |
+          sudo apt-get update
+          sudo apt-get install hugo
+          hugo -d /tmp/workspace/public_html
+      - persist_to_workspace:
+          root: *workspace_root
+          paths:
+            - public_html
+
+  deploy-static:
+    docker:
+      - image: cimg/python:3.8
+    steps:
+      - *attach_workspace
+      - add_ssh_keys:
+         fingerprints:
+          - "70:44:86:3c:bb:f6:eb:f1:82:8a:85:8d:a5:3b:8d:08"
+      - run:
+        name: Deploy Over SSH
+        command: |
+          rsync -avz /tmp/workspace/public_html $SSH_USER@$SSH_HOST:/tmp/
+# ssh $SSH_USER@$SSH_HOST "<remote deploy command>"
+
+  # deploy:
+  #  machine:
+  #    enabled: true
+  #  steps:
+  #    - add_ssh_keys:
+  #        fingerprints:
+  #         - "70:44:86:3c:bb:f6:eb:f1:82:8a:85:8d:a5:3b:8d:08"
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  sample: # This is the name of the workflow, feel free to change it to better match your workflow.
+  build-and-deploy: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - build-and-test
+      - build
+      - deploy-serverless:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
+      - build-static
+      - deploy-static:
+           requires:
+             - build-static # only deploy once build-static job has completed
+           filters:
+             branches:
+               only: ui # only deploy on the ui branch
