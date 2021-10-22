@@ -84,6 +84,8 @@ functions:
     timeout: 900
     layers:
       - arn:aws:lambda:ap-south-1:175205145031:layer:Hacktoberfest-Deps:1
+    environment:
+      LOG_LEVEL: info
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
