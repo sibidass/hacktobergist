@@ -1,12 +1,11 @@
-import toml
+from datetime import datetime
 
-from scheduler import Scheduler
-from utils.logger import get_logger
-from jobs import IssueFetcherJob, ALL_LANG
+from .utils.logger import get_logger
+from .jobs import IssueFetcherJob, ALL_LANG, config
 
 log = get_logger(__name__)
-config_file = "config.toml"
-schedule_config = toml.load(config_file)["scheduled_jobs"]
+schedule_config = config["scheduled_jobs"]
+issue_fetcher_config = schedule_config["issue_fetcher"]
 
 def handler(event, context):
     lang = event.get("languages_rem", ALL_LANG)
@@ -32,5 +31,3 @@ def handler(event, context):
             "pending": lang_to_process,
             "message": "task partially completed"
         }
-
-

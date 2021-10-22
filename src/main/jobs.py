@@ -4,10 +4,10 @@ import json
 import os
 
 import toml
-from utils.db import DB
-from utils.client import IssueFetch
-from utils.logger import get_logger
-from template_builder import Template
+from .utils.db import DB
+from .utils.client import IssueFetch
+from .utils.logger import get_logger
+from .template_builder import Template
 
 
 default_filter_rules = """
@@ -23,10 +23,13 @@ default_filter_rules = """
 SEC = 1000 # 1 sec = 1000ms
 MIN = 60 * SEC # 1 min = 60 secs
 
-ALL_LANG = {'HTML', 'Twig', 'CSS', 'Swift', 'Julia', 'Haskell', 'Kotlin', 'Svelte', 'HCL', 'Vue', 'TypeScript', 'Rust', 'Dockerfile', 'YAML', 'Shell', 'C++', 'C', 'Java', 'SCSS', 'Jupyter Notebook', 'R', 'Q#', 'Lua', 'C#', 'Perl', 'PHP', 'Go', 'Ruby', 'Hack', 'Cython', 'Python', 'Elixir', 'JavaScript', 'Dart'}
+# ALL_LANG = {'HTML', 'Twig', 'CSS', 'Swift', 'Julia', 'Haskell', 'Kotlin', 'Svelte', 'HCL', 'Vue', 'TypeScript', 'Rust', 'Dockerfile', 'YAML', 'Shell', 'C++', 'C', 'Java', 'SCSS', 'Jupyter Notebook', 'R', 'Q#', 'Lua', 'C#', 'Perl', 'PHP', 'Go', 'Ruby', 'Hack', 'Cython', 'Python', 'Elixir', 'JavaScript', 'Dart'}
+ALL_LANG = {'HTML'}
 
 log = get_logger(__name__)
-config_file = "config.toml"
+
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+config_file = os.path.join(APP_DIR, "config.toml")
 config = toml.load(config_file)
 issues_table = config.get("db")["issues_table"]
 
@@ -64,7 +67,7 @@ class IssueFetcherJob(object):
         fetcher = IssueFetch()
         lang_processed = []
         for lang in self.languages:
-            if self.lamda_context && self.lamda_context < 5 * MIN:
+            if self.lamda_context and self.lamda_context.get_remaining_time_in_millis() < 5 * MIN:
                 log.info("premature ending..")
                 return {
                 "status": "partial",
