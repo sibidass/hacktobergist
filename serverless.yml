@@ -51,20 +51,24 @@ provider:
             - AWS::EC2::Instance
 
 # you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
+  # iamRoleStatements:
+  #   - Effect: "Allow"
+  #     Action:
+  #      - "s3:ListBucket"
+  #     Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+  #   - Effect: "Allow"
+  #     Action:
+  #      - "s3:PutObject"
+  #     Resource:
+  #      Fn::Join:
+  #        - ""
+  #        - - "arn:aws:s3:::"
+  #          - "Ref" : "ServerlessDeploymentBucket"
+  #          - "/*"
+  #   - Effect: "Allow"
+  #     Action:
+  #       - "dynamodb:*"
+  #     Resource:
 
 # you can define service wide environment variables here
 #  environment:
@@ -86,6 +90,7 @@ functions:
       - arn:aws:lambda:ap-south-1:175205145031:layer:Hacktoberfest-Deps:1
     environment:
       LOG_LEVEL: info
+      github_client_sleep_time: 10
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
