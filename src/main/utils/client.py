@@ -16,6 +16,7 @@ default_filter_rules = """
 """
 
 default_filter = json.loads(default_filter_rules)
+SLEEP_TIME = os.environ.get("github_client_sleep_time", 5)
 
 def apply_default(filter_name):
     try:
@@ -145,8 +146,10 @@ class IssueFetch(GitHubClient):
                 if self.api_count == 1:
                     super(IssueFetch, self).__init__()
                 hck_issues = self.pop_issues(**filters)
+            elif "Please wait a few minutes before you try again" in str(e):
+                time.sleep(100)
         # sleeping for 2 secs before another github request
-        time.sleep(2)
+        time.sleep(SLEEP_TIME)
         return hck_issues
 
     def _construct_query(self, query):
