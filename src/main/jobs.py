@@ -13,7 +13,6 @@ from .template_builder import Template
 default_filter_rules = """
 {
     "query": {"label":"hacktoberfest",
-            "state":"open",
             "type":"issue",
             "no":"assignee"},
     "qualifiers": {"updated": "2021-10-01..2021-10-01"}
