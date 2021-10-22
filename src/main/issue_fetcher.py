@@ -43,7 +43,7 @@ def handler(event, context):
         log.info("Invoke response: {}".format(json.dumps(resp)))
         return {
             "status": job_resp.get("status"),
-            "total": ALL_LANG,
+            "total": list(ALL_LANG),
             "curr_processed": job_resp.get("languages_processed"),
             "pending": lang_to_process,
             "message": "task partially completed"
