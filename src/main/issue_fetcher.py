@@ -40,6 +40,7 @@ def handler(event, context):
                                   InvokeArgs=json.dumps(new_event).encode()
                                   )
         log.info("New lambda invoked with the payload: {}".format(json.dumps(new_event)))
+        log.info("Invoke response: {}".format(json.dumps(resp)))
         return {
             "status": job_resp.get("status"),
             "total": ALL_LANG,
