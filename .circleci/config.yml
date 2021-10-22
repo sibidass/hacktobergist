@@ -27,6 +27,8 @@ jobs:
         image: "cimg/python:3.8"
     steps:
       - checkout
+      - run: git submodule sync
+      - run: git submodule update --init --recursive
       -
         run:
           command: |
@@ -69,8 +71,10 @@ jobs:
             - "70:44:86:3c:bb:f6:eb:f1:82:8a:85:8d:a5:3b:8d:08"
       - run:
           command: |
-            apt-get update
-            apt-get install rsync
+            sudo apt-get update
+            sudo apt-get install rsync
+            mkdir -p ~/.ssh
+            ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
           name: "Installing rsync"
       - run:
           command: "rsync -avz /tmp/workspace/public_html $SSH_USER@$SSH_HOST:/tmp/"
