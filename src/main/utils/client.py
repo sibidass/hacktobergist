@@ -82,18 +82,6 @@ class IssueFetch(GitHubClient):
         self.api_count = 1
         super(IssueFetch, self).__init__()
 
-    # def set_update_filters(self, **filters):
-    #     if not filters.get("query"):
-    #         filters["query"] = apply_default("query")
-    #     if not filters.get("qualifiers"):
-    #         filters["qualifiers"] = apply_default("qualifiers")
-    #     # apply everything in kwargs as part of query
-    #     list(map(lambda k: filters["query"].update({k[0]:k[1]}) if(k[0] not in default_filter) else None, filters.items()))
-    #     # self.filters = filters
-    #     self.query = filters.get("query")
-    #     self.qualifiers = filters.get("qualifiers")
-    #     self.language = self.query.get("language", None)
-
     def pop_issues(self, **filters):
         hck_issues = []
         query = filters.get("query")
@@ -147,7 +135,8 @@ class IssueFetch(GitHubClient):
                     super(IssueFetch, self).__init__()
                 hck_issues = self.pop_issues(**filters)
             elif "Please wait a few minutes before you try again" in str(e):
-                time.sleep(100)
+                time.sleep(150)
+                hck_issues = self.pop_issues(**filters)
         # sleeping for 2 secs before another github request
         time.sleep(SLEEP_TIME)
         return hck_issues

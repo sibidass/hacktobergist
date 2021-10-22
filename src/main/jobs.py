@@ -21,7 +21,7 @@ default_filter_rules = """
 
 SEC = 1000 # 1 sec = 1000ms
 MIN = 60 * SEC # 1 min = 60 secs
-ALL_LANG = {'HTML', 'Twig', 'CSS', 'Swift', 'Julia', 'Haskell', 'Kotlin', 'Svelte', 'HCL', 'Vue', 'TypeScript', 'Rust', 'Dockerfile', 'YAML', 'Shell', 'C++', 'C', 'Java', 'SCSS', 'Jupyter Notebook', 'R', 'Q#', 'Lua', 'C#', 'Perl', 'PHP', 'Go', 'Ruby', 'Hack', 'Cython', 'Python', 'Elixir', 'JavaScript', 'Dart'}
+ALL_LANG = ['HTML', 'Twig', 'CSS', 'Swift', 'Julia', 'Haskell', 'Kotlin', 'Svelte', 'HCL', 'Vue', 'TypeScript', 'Rust', 'Dockerfile', 'YAML', 'Shell', 'C++', 'C', 'Java', 'SCSS', 'Jupyter Notebook', 'R', 'Q#', 'Lua', 'C#', 'Perl', 'PHP', 'Go', 'Ruby', 'Hack', 'Cython', 'Python', 'Elixir', 'JavaScript', 'Dart']
 
 log = get_logger(__name__)
 
@@ -62,7 +62,7 @@ class IssueFetcherJob(object):
 
     def run(self, l_start_date=None):
         fetcher = IssueFetch()
-        lang_processed = []
+        lang_processed = [x for x in ALL_LANG if x not in self.languages]
         l_start_date = l_start_date
         for lang in self.languages:
             log.info("Getting {} issues".format(lang))
