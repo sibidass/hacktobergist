@@ -20,6 +20,9 @@ default_filter_rules = """
 }
 """
 
+SEC = 1000 # 1 sec = 1000ms
+MIN = 60 * SEC # 1 min = 60 secs
+
 ALL_LANG = {'HTML', 'Twig', 'CSS', 'Swift', 'Julia', 'Haskell', 'Kotlin', 'Svelte', 'HCL', 'Vue', 'TypeScript', 'Rust', 'Dockerfile', 'YAML', 'Shell', 'C++', 'C', 'Java', 'SCSS', 'Jupyter Notebook', 'R', 'Q#', 'Lua', 'C#', 'Perl', 'PHP', 'Go', 'Ruby', 'Hack', 'Cython', 'Python', 'Elixir', 'JavaScript', 'Dart'}
 
 log = get_logger(__name__)
@@ -40,7 +43,8 @@ def apply_custom_filters(func):
 
 class IssueFetcherJob(object):
     """docstring for IssueFetcherJob"""
-    def __init__(self, start_date, end_date, *languages):
+    def __init__(self, start_date, end_date, lamda_context=None, *languages):
+        self.lamda_context = lamda_context
         self.date_range = self._construct_date_range(start_date, end_date)
         self.languages = languages
 
@@ -58,7 +62,14 @@ class IssueFetcherJob(object):
 
     def run(self):
         fetcher = IssueFetch()
+        lang_processed = []
         for lang in self.languages:
+            if self.lamda_context && self.lamda_context < 5 * MIN:
+                log.info("premature ending..")
+                return {
+                "status": "partial",
+                "languages_processed": lang_processed
+                }
             log.info("Getting {} issues".format(lang))
             for day in self.date_range:
                 log.debug("Issues on {}".format(day))
@@ -69,7 +80,11 @@ class IssueFetcherJob(object):
                     self.add_issues_to_db(issues)
                     log.debug("Stored in DB")
                     log.debug("-"*5)
+            lang_processed.append(lang)
             log.debug("="*5)
+        return {
+        "status": "complete"
+        }
 
     @staticmethod
     def add_issues_to_db(issues):
