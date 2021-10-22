@@ -35,9 +35,10 @@ def handler(event, context):
         }
 
         # invoke lambda for remaining languages
-        resp = lambda_client.invoke_async(
+        resp = lambda_client.invoke(
                                   FunctionName=context.function_name,
-                                  InvokeArgs=json.dumps(new_event).encode()
+                                  InvocationType='Event',
+                                  Payload=json.dumps(new_event).encode()
                                   )
         log.info("New lambda invoked with the payload: {}".format(json.dumps(new_event)))
         log.info("Invoke response: {}".format(json.dumps(resp)))
