@@ -145,6 +145,8 @@ class IssueFetch(GitHubClient):
                 if self.api_count == 1:
                     super(IssueFetch, self).__init__()
                 hck_issues = self.pop_issues(**filters)
+        # sleeping for 2 secs before another github request
+        time.sleep(2)
         return hck_issues
 
     def _construct_query(self, query):
