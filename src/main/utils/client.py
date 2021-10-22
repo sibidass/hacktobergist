@@ -16,7 +16,7 @@ default_filter_rules = """
 """
 
 default_filter = json.loads(default_filter_rules)
-SLEEP_TIME = os.environ.get("github_client_sleep_time", 5)
+SLEEP_TIME = int(os.environ.get("github_client_sleep_time", 5))
 
 def apply_default(filter_name):
     try:
