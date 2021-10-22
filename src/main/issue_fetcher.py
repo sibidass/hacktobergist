@@ -1,16 +1,22 @@
 from datetime import datetime
+import json
 
-from .utils.logger import get_logger
-from .jobs import IssueFetcherJob, ALL_LANG, config
+import boto3
+from src.main.utils.logger import get_logger
+from src.main.jobs import IssueFetcherJob, ALL_LANG, config
 
 log = get_logger(__name__)
 schedule_config = config["scheduled_jobs"]
 issue_fetcher_config = schedule_config["issue_fetcher"]
 
+lambda_client = boto3.client("lambda")
+
 def handler(event, context):
     lang = event.get("languages_rem", ALL_LANG)
-    job = IssueFetcherJob(issue_fetcher_config["start_date"], datetime.now().strftime("%Y-%m-%d"), context, *lang)
-    job_resp = job.run()
+    start_date = issue_fetcher_config["start_date"]
+    lang_start_date = event.get("lang_start_date")
+    job = IssueFetcherJob(start_date, datetime.now().strftime("%Y-%m-%d"), context, *lang)
+    job_resp = job.run(l_start_date=lang_start_date)
     if job_resp.get("status") == "complete":
         return {
             "status": job_resp.get("status"),
@@ -21,9 +27,19 @@ def handler(event, context):
                                                    job_resp.get("languages_processed")))
 
         lang_to_process = [l for l in lang if l not in job_resp.get("languages_processed")]
+        day = job_resp.get("dated")
 
-        # TO DO:
+        new_event = {
+            "languages_rem": lang_to_process,
+            "lang_start_date": day
+        }
+
         # invoke lambda for remaining languages
+        resp = lambda_client.invoke_async(
+                                  FunctionName=context.function_name,
+                                  InvokeArgs=json.dumps(new_event).encode()
+                                  )
+        log.info("New lambda invoked with the payload: {}".format(json.dumps(new_event)))
         return {
             "status": job_resp.get("status"),
             "total": ALL_LANG,

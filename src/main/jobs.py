@@ -22,9 +22,7 @@ default_filter_rules = """
 
 SEC = 1000 # 1 sec = 1000ms
 MIN = 60 * SEC # 1 min = 60 secs
-
-# ALL_LANG = {'HTML', 'Twig', 'CSS', 'Swift', 'Julia', 'Haskell', 'Kotlin', 'Svelte', 'HCL', 'Vue', 'TypeScript', 'Rust', 'Dockerfile', 'YAML', 'Shell', 'C++', 'C', 'Java', 'SCSS', 'Jupyter Notebook', 'R', 'Q#', 'Lua', 'C#', 'Perl', 'PHP', 'Go', 'Ruby', 'Hack', 'Cython', 'Python', 'Elixir', 'JavaScript', 'Dart'}
-ALL_LANG = {'HTML'}
+ALL_LANG = {'HTML', 'Twig', 'CSS', 'Swift', 'Julia', 'Haskell', 'Kotlin', 'Svelte', 'HCL', 'Vue', 'TypeScript', 'Rust', 'Dockerfile', 'YAML', 'Shell', 'C++', 'C', 'Java', 'SCSS', 'Jupyter Notebook', 'R', 'Q#', 'Lua', 'C#', 'Perl', 'PHP', 'Go', 'Ruby', 'Hack', 'Cython', 'Python', 'Elixir', 'JavaScript', 'Dart'}
 
 log = get_logger(__name__)
 
@@ -63,18 +61,26 @@ class IssueFetcherJob(object):
     def _apply_filters(self, **filters):
         return json.loads(default_filter_rules)
 
-    def run(self):
+    def run(self, l_start_date=None):
         fetcher = IssueFetch()
         lang_processed = []
+        l_start_date = l_start_date
         for lang in self.languages:
-            if self.lamda_context and self.lamda_context.get_remaining_time_in_millis() < 5 * MIN:
-                log.info("premature ending..")
-                return {
-                "status": "partial",
-                "languages_processed": lang_processed
-                }
             log.info("Getting {} issues".format(lang))
-            for day in self.date_range:
+            if l_start_date:
+                date_range_idx = self._find_date_idx(l_start_date)
+                date_range = self.date_range[date_range_idx:]
+                l_start_date = None
+            else:
+                date_range = self.date_range
+            for day in date_range:
+                if self.lamda_context and self.lamda_context.get_remaining_time_in_millis() < 5 * MIN:
+                    log.info("premature ending..")
+                    return {
+                    "status": "partial",
+                    "languages_processed": lang_processed,
+                    "dated": day
+                    }
                 log.debug("Issues on {}".format(day))
                 qualifiers = {"updated": "{}..{}".format(day, day)}
                 filters = self._apply_filters(language=lang, qualifiers=qualifiers)
@@ -89,13 +95,22 @@ class IssueFetcherJob(object):
         "status": "complete"
         }
 
+    def _find_date_idx(self, date):
+        for idx, item in enumerate(self.date_range):
+            if item == date:
+                return idx
+
     @staticmethod
     def add_issues_to_db(issues):
         db = DB(issues_table)
         for issue in issues:
             resp = issue.insert_to_db(db)
-            if resp.get("ResponseMetadata")["HTTPStatusCode"] != 200:
-                log.error("Failed to insert {}-{} to DB. Errorcode: {}".format(issue.id, issue.language, str(resp.get("HTTPStatusCode"))))
+            if resp:
+                if resp.get("ResponseMetadata")["HTTPStatusCode"] != 200:
+                    log.error("Failed to insert {}-{} to DB. Errorcode: {}".format(issue.id, issue.language, str(resp.get("HTTPStatusCode"))))
+            else:
+                log.critical("Failed to connect to db")
+                raise Exception("DB Error")
 
 class SiteUpdaterIssueJob(object):
     config = config["siteupdater"]
