@@ -253,8 +253,10 @@ class SiteUpdaterIssueJob(object):
 
     @staticmethod
     def escape_special(text):
-        text = text.replace('"','\\"')
-        return '"' + text + '"'
+        formatted_text = text
+        for c in ['\\', '"']:
+            formatted_text = formatted_text.replace(c, '\\'+c)
+        return '"' + formatted_text + '"'
 
 if __name__ == '__main__':
     log.info("Test from jobs module")
