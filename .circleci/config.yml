@@ -21,7 +21,7 @@ jobs:
         python/install-packages:
           app-dir: ~/project/src/main
           pkg-manager: pip
-  build-static:
+  build-ui-contents:
     docker:
       -
         image: "cimg/python:3.8"
@@ -40,6 +40,30 @@ jobs:
               sudo apt-get install hugo
               echo "listing current dir"
               python src/main/site_builder.py
+              cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
+          name: "Install hugo"
+      -
+        persist_to_workspace:
+          paths:
+            - public_html
+          root: *workspace_root
+  build-ui:
+    docker:
+      -
+        image: "cimg/python:3.8"
+    steps:
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init --recursive
+      -
+        python/install-packages:
+          app-dir: ~/project/src/main
+          pkg-manager: pip
+      -
+        run:
+          command: |
+              sudo apt-get update
+              sudo apt-get install hugo
               cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
           name: "Install hugo"
       -
@@ -101,11 +125,25 @@ workflows:
               only: main
           requires:
             - build
-      - build-static
+      - build-ui-contents:
+          filters:
+            branches:
+              only: ui-content-refresh
+      - build-ui:
+          filters:
+            branches:
+              only: ui
+      -
+        deploy-static:
+          filters:
+            branches:
+              only: ui-content-refresh
+          requires:
+            - build-ui-contents
       -
         deploy-static:
           filters:
             branches:
               only: ui
           requires:
-            - build-static
+            - build-ui
