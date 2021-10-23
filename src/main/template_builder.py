@@ -1,7 +1,8 @@
 from jinja2 import Environment, FileSystemLoader
 import os
 import toml
-from .utils.db import DB
+from utils.db import DB
+from utils.db import DB
 
 
 config_file = "config.toml"
