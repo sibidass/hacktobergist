@@ -4,10 +4,10 @@ import json
 import os
 
 import toml
-from .utils.db import DB
-from .utils.client import IssueFetch
-from .utils.logger import get_logger
-from .template_builder import Template
+from utils.db import DB
+from utils.client import IssueFetch
+from utils.logger import get_logger
+from template_builder import Template
 
 
 default_filter_rules = """
@@ -26,9 +26,11 @@ ALL_LANG = ['HTML', 'Twig', 'CSS', 'Swift', 'Julia', 'Haskell', 'Kotlin', 'Svelt
 log = get_logger(__name__)
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.join(APP_DIR, "../../")
 config_file = os.path.join(APP_DIR, "config.toml")
 config = toml.load(config_file)
 issues_table = config.get("db")["issues_table"]
+issues_table_process = config.get("db")["issues_table_process"]
 
 
 def apply_custom_filters(func):
@@ -47,6 +49,7 @@ class IssueFetcherJob(object):
         self.lamda_context = lamda_context
         self.date_range = self._construct_date_range(start_date, end_date)
         self.languages = languages
+        self.processed_info = self._get_processed_info()
 
     def _construct_date_range(self, s_date, e_date):
         date_range = []
@@ -60,25 +63,31 @@ class IssueFetcherJob(object):
     def _apply_filters(self, **filters):
         return json.loads(default_filter_rules)
 
-    def run(self, l_start_date=None):
+    def run(self):
         fetcher = IssueFetch()
-        lang_processed = [x for x in ALL_LANG if x not in self.languages]
-        l_start_date = l_start_date
         for lang in self.languages:
-            log.info("Getting {} issues".format(lang))
+            l_start_date = None
+            lang_process_info = None
+            if lang in self.processed_info:
+                if self.processed_info[lang].get("completed_on"):
+                    continue
+                lang_process_info = self.processed_info[lang].get("process_info")
+                l_start_date = lang_process_info.get("process_started")
             if l_start_date:
                 date_range_idx = self._find_date_idx(l_start_date)
                 date_range = self.date_range[date_range_idx:]
-                l_start_date = None
             else:
                 date_range = self.date_range
+                lang_process_info["processed"] = []
+            log.info("Getting {} issues from {}".format(lang, date_range[0]))
             for day in date_range:
+                lang_process_info["process_started"] = day
                 if self.lamda_context and self.lamda_context.get_remaining_time_in_millis() < 5 * MIN:
                     log.info("premature ending..")
+                    self._update_processed_info(lang, lang_process_info)
                     return {
                     "status": "partial",
-                    "languages_processed": lang_processed,
-                    "dated": day
+                    "process_info": self.processed_info
                     }
                 log.debug("Issues on {}".format(day))
                 qualifiers = {"updated": "{}..{}".format(day, day)}
@@ -88,11 +97,28 @@ class IssueFetcherJob(object):
                     self.add_issues_to_db(issues)
                     log.debug("Stored in DB")
                     log.debug("-"*5)
-            lang_processed.append(lang)
+                lang_process_info["processed"].append(day)
+            lang_process_info["process_started"] = None
+            self._update_processed_info(lang, lang_process_info, complete=True)
             log.debug("="*5)
         return {
         "status": "complete"
         }
+
+    def _update_processed_info(self, lang, process_info, complete=False):
+        if complete:
+            completed = datetime.now().strftime("%Y-%m-%d:%H:%M:%S")
+        else:
+            completed = None
+        self.processed_info.update({
+                                   lang: {
+                                   "language": lang,
+                                   "process_info": process_info,
+                                   "completed_on": completed
+                                   }
+                                   })
+        db = DB(issues_table_process)
+        db.put(self.processed_info[lang])
 
     def _find_date_idx(self, date):
         for idx, item in enumerate(self.date_range):
@@ -111,14 +137,38 @@ class IssueFetcherJob(object):
                 log.critical("Failed to connect to db")
                 raise Exception("DB Error")
 
+    def _get_processed_info(self):
+        db = DB(issues_table_process)
+        today = datetime.now().strftime("%Y-%m-%d")
+        processed_info = {}
+        for lang in self.language:
+            resp = db.get({
+                    "key": {
+                    "name": "language",
+                    "value": lang
+                    },
+                    "condition": "eq",
+                    "attr": {
+                    "name": "completed_on",
+                    "value": today,
+                    "condition": "eq"
+                    }
+                   })
+            if resp:
+                processed_info[lang] = resp[0]
+        return processed_info
+
 class SiteUpdaterIssueJob(object):
     config = config["siteupdater"]
     """docstring for SiteUpdaterJob"""
-    def __init__(self, languages):
+    def __init__(self, languages, issue_state):
         self.issues_meta = self.config.get("issues")
-        self.templates = Template(self.config.get("templates_location"))
+        self.templates_location = os.path.join(BASE_DIR, self.config.get("templates_location"))
+        self.dest_path = os.path.join(BASE_DIR, self.issues_meta.get("dest_path"))
+        self.templates = Template(self.templates_location)
         self.db = DB(self.issues_meta.get("db_table"))
         self.languages = languages
+        self.issue_state = issue_state
 
     def run(self):
         log.debug("Reading issues from DB:\n{}".format(",".join(self.languages)))
@@ -128,12 +178,12 @@ class SiteUpdaterIssueJob(object):
         for issue in issues:
             tmpl_vars.update({
                              "time": issue.get("updated_date"),
-                             "issue_title": issue.get("title"),
+                             "issue_title": self.escape_special(issue.get("title")),
                              "issue_url": issue.get("url"),
                              "repo_link": issue.get("url").rsplit("/",2)[0],
                              "language": issue.get("language")
                              })
-            page_mdfile_location = os.path.join(self.config["templates_location"], "pages", self.issues_meta["data_file"])
+            page_mdfile_location = os.path.join(self.templates_location, "pages", self.issues_meta["data_file"])
             page_data = self._read_from_file(page_mdfile_location)
             dst_parent_dir = issue.get("language")
             for file in self.issues_meta["template_files"]:
@@ -143,16 +193,27 @@ class SiteUpdaterIssueJob(object):
                     if file.find("_head") != -1:
                         file_name = str(issue.get("id")) + ".md"
                         content += "\n" + page_data
-                    elif file.find("_index") != -1:
-                        file_name = "_index.md"
+                    # elif file.find("_index") != -1:
+                    #     file_name = "_index.md"
                     else:
-                        raise Exception("template file {} not supported".format(file))
-                    dst_file = os.path.join(self.issues_meta.get("dest_path"), dst_parent_dir, file_name)
+                        raise Exception("template file {} not supported yet".format(file))
+                    dst_file = os.path.join(self.dest_path, dst_parent_dir, file_name)
                     log.debug("writing data to {}".format(dst_file))
                     self._write_to_file(content, dst_file)
                 except Exception as e:
                     log.warn(str(e))
                     continue
+            self._update_index()
+
+    def _update_index(self):
+        index_template = self.issues_meta["index_template"]
+        index_file = "_index.md"
+        dst_parent_dir = self.dest_path
+        for lang in ALL_LANG:
+            dst = os.path.join(dst_parent_dir, lang)
+            if os.path.exists(dst):
+                content = self.templates.render(index_template, language=lang)
+                self._write_to_file(content, os.path.join(dst, index_file))
 
     def _read_from_file(self, file):
         lines = ""
@@ -180,10 +241,20 @@ class SiteUpdaterIssueJob(object):
                                 "name": "language",
                                 "value": lang
                                 },
+                                "condition": "eq",
+                                "attr": {
+                                "name": "state",
+                                "value": "open",
                                 "condition": "eq"
+                                }
                                 })
             items_total.extend(items)
         return items_total
+
+    @staticmethod
+    def escape_special(text):
+        text = text.replace('"','\\"')
+        return '"' + text + '"'
 
 if __name__ == '__main__':
     log.info("Test from jobs module")
