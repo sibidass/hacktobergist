@@ -112,7 +112,7 @@ jobs:
       - run:
           name: "Deploy Over SSH"
           command: |
-            ssh $SSH_USER@$SSH_HOST "unzip /tmp/public.zip -d /var/www/html/hacktoberfest/"
+            ssh $SSH_USER@$SSH_HOST "unzip -o /tmp/public.zip -d /var/www/html/hacktoberfest/"
 
 workflows:
   build-and-deploy:
