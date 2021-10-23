@@ -2,6 +2,7 @@ from datetime import datetime
 from datetime import timedelta
 import json
 import os
+import unicodedata
 
 import toml
 from utils.db import DB
@@ -253,9 +254,10 @@ class SiteUpdaterIssueJob(object):
 
     @staticmethod
     def escape_special(text):
-        formatted_text = text
+        new_text = text
         for c in ['\\', '"']:
-            formatted_text = formatted_text.replace(c, '\\'+c)
+            new_text = new_text.replace(c, '\\'+c)
+        formatted_text = "".join(ch for ch in new_text if unicodedata.category(ch)[0]!="C")
         return '"' + formatted_text + '"'
 
 if __name__ == '__main__':
