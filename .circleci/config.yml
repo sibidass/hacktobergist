@@ -35,8 +35,7 @@ jobs:
               sudo apt-get update
               sudo apt-get install hugo
               echo "listing current dir"
-              pwd
-              ls -al
+              python src/main/site_builder.py
               cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
           name: "Install hugo"
       -
@@ -77,8 +76,15 @@ jobs:
             ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
           name: "Installing rsync"
       - run:
-          command: "rsync -avz /tmp/workspace/public_html $SSH_USER@$SSH_HOST:/tmp/"
+          name: "Creating archive"
+          command: "pushd /tmp/workspace/public_html && zip -r ../public . && popd"
+      - run:
+          command: "rsync -avz /tmp/workspace/public.zip $SSH_USER@$SSH_HOST:/tmp/"
+          name: "Copy Over SSH"
+      - run:
           name: "Deploy Over SSH"
+          command: |
+            ssh $SSH_USER@$SSH_HOST "unzip /tmp/public.zip -d /var/www/html/hacktoberfest/"
 
 workflows:
   build-and-deploy:
