@@ -1,0 +1,71 @@
+<form class="contact-form-wrapper" accept-charset="UTF-8" action="{{ .Get "action" }}" method="POST" role="form">
+<label for="uname">Username</label>
+<input type="text" id="name" name="name" required placeholder="Github username" aria-labelledby="uname"/>
+<br>
+<label for="email">Email Address</label>
+<input type="email" id="email" name="email" required placeholder="Email" aria-labelledby="email"/>
+<br>
+<label for="language">Choose Language:</label>
+<select name="language" id="language" multiple>
+  <option value="python">Python</option>
+  <option value="golang">Golang</option>
+  <option value="php">C</option>
+  <option value="java">Java</option>
+  <option value="javascript">JavaScript</option>
+  <option value="react">Reactjs</option>
+  <option value="c">C</option>
+</select><br>
+<input type="submit" value="Send"/>
+</form>
+
+<style type="text/css">
+  .contact-form-wrapper {
+    width: 75%;
+    padding: 30px;
+    background: grey;
+  }
+  .contact-form-wrapper input[type=text], input[type=email] {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 5px;
+    background: white;
+  }
+  input[type=submit] {
+    font-family: Fira Code,Monaco,Consolas,Ubuntu Mono,monospace;
+    font-size: 1.25em;
+    width: 100%;
+    padding: 10px;
+  }
+  input[type=submit]:hover {
+    background-color: orange;
+  }
+  input[type=text]:focus {
+  background-color: lightblue;
+  }
+  input[type=email]:focus {
+  background-color: lightblue;
+  }
+  .contact-form-wrapper input[type=checkbox] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  .checker {
+    position: inherit;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+  }
+  .contact-form-wrapper select {
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1;
+  }
+
+</style>
