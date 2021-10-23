@@ -9,7 +9,7 @@ log = get_logger(__name__)
 
 def main():
     log.info("Fetching issues from DB")
-    update_job = SiteUpdaterIssueJob(['HTML', 'PHP'], "open")
+    update_job = SiteUpdaterIssueJob(ALL_LANG, "open")
 
     update_job.run()
 
