@@ -21,10 +21,7 @@ def main():
                 IssueFetcherJob(issue_fetcher_config["start_date"], datetime.now().strftime("%Y-%m-%d"), *ALL_LANG): issue_fetcher_config["schedule"],
                 SiteUpdaterIssueJob(["Python"]): siteupdater_issue_config["schedule"]
                 })
-    scheduled_jobs = []
-    for job, job_time in jobs.items():
-        scheduled_jobs.append(Scheduler(job, job_time))
-
+    scheduled_jobs = [Scheduler(job, job_time) for job, job_time in jobs.items()]
     for sch in scheduled_jobs:
         print(sch.time)
         print(datetime.now().strftime("%H:%M"))

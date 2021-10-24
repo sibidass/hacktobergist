@@ -107,10 +107,7 @@ class IssueFetcherJob(object):
         }
 
     def _update_processed_info(self, lang, process_info, complete=False):
-        if complete:
-            completed = datetime.now().strftime("%Y-%m-%d:%H:%M:%S")
-        else:
-            completed = None
+        completed = datetime.now().strftime("%Y-%m-%d:%H:%M:%S") if complete else None
         self.processed_info.update({
                                    lang: {
                                    "language": lang,
@@ -191,13 +188,10 @@ class SiteUpdaterIssueJob(object):
                 log.debug("rendering template {}".format(file))
                 content = self.templates.render(file, **tmpl_vars)
                 try:
-                    if file.find("_head") != -1:
-                        file_name = str(issue.get("id")) + ".md"
-                        content += "\n" + page_data
-                    # elif file.find("_index") != -1:
-                    #     file_name = "_index.md"
-                    else:
+                    if file.find("_head") == -1:
                         raise Exception("template file {} not supported yet".format(file))
+                    file_name = str(issue.get("id")) + ".md"
+                    content += "\n" + page_data
                     dst_file = os.path.join(self.dest_path, dst_parent_dir, file_name)
                     log.debug("writing data to {}".format(dst_file))
                     self._write_to_file(content, dst_file)
@@ -263,4 +257,3 @@ class SiteUpdaterIssueJob(object):
 if __name__ == '__main__':
     log.info("Test from jobs module")
     test_logger()
-
