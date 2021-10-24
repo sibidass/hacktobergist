@@ -66,7 +66,7 @@ class HacktoberIssue(object):
         self.language = lang
 
     def insert_to_db(self, db):
-        resp = db.put({
+        return db.put({
                "id": self.id,
                "url": self.url,
                "state": self.state,
@@ -74,7 +74,6 @@ class HacktoberIssue(object):
                "language": self.language,
                "title": self.title
                })
-        return resp
 
 class IssueFetch(GitHubClient):
     """docstring for IssueFetch"""
