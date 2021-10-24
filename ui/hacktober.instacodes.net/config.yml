@@ -46,7 +46,7 @@ params:
 
   label:
     text: "HacktoberGist"
-    icon: /apple-touch-icon.png
+    icon: /instacodes.jpg
     iconHeight: 35
 
   homeInfoParams:
