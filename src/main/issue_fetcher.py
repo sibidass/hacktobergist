@@ -1,15 +1,20 @@
 from datetime import datetime
+import json
 
-from .utils.logger import get_logger
-from .jobs import IssueFetcherJob, ALL_LANG, config
+import boto3
+from src.main.utils.logger import get_logger
+from src.main.jobs import IssueFetcherJob, ALL_LANG, config
 
 log = get_logger(__name__)
 schedule_config = config["scheduled_jobs"]
 issue_fetcher_config = schedule_config["issue_fetcher"]
 
+lambda_client = boto3.client("lambda")
+
 def handler(event, context):
-    lang = event.get("languages_rem", ALL_LANG)
-    job = IssueFetcherJob(issue_fetcher_config["start_date"], datetime.now().strftime("%Y-%m-%d"), context, *lang)
+    lang = event.get("languages", ALL_LANG)
+    start_date = issue_fetcher_config["start_date"]
+    job = IssueFetcherJob(start_date, datetime.now().strftime("%Y-%m-%d"), context, *lang)
     job_resp = job.run()
     if job_resp.get("status") == "complete":
         return {
@@ -17,17 +22,18 @@ def handler(event, context):
             "message": "Issues successfully fetched from github"
         }
     else:
-        log.info("Languages processed: {}".format(
-                                                   job_resp.get("languages_processed")))
+        log.info("Processed Info: {}".format(job_resp.get("process_info")))
 
-        lang_to_process = [l for l in lang if l not in job_resp.get("languages_processed")]
-
-        # TO DO:
         # invoke lambda for remaining languages
+        resp = lambda_client.invoke(
+                                  FunctionName=context.function_name,
+                                  InvocationType='Event',
+                                  Payload=json.dumps(event).encode()
+                                  )
+        log.info("New lambda invoked with the payload: {}".format(json.dumps(event)))
         return {
             "status": job_resp.get("status"),
-            "total": ALL_LANG,
-            "curr_processed": job_resp.get("languages_processed"),
-            "pending": lang_to_process,
+            "total": lang,
+            "process_info": job_resp.get("process_info"),
             "message": "task partially completed"
         }

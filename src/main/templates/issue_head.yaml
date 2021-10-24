@@ -3,6 +3,7 @@ author: {{repo_link}}
 title: {{issue_title}}
 date: {{time}}
 issuelink: {{issue_url}}
+draft: false
 tags:
   - issue
   - {{language}}

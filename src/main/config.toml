@@ -1,17 +1,19 @@
 [siteupdater]
-templates_location = "/Users/ssivadas/sideprojects/hacktobergist/src/main/templates"
+templates_location = "src/main/templates"
 [siteupdater.issues]
 db_table = "HacktoberIssues"
 db_partition_key = "language"
-dest_path = "/Users/ssivadas/sideprojects/hacktobergist/ui/public/issues"
+dest_path = "ui/hacktober.instacodes.net/content/issues"
 file_prefix = "issue"
-template_files = ["issue_head.yaml", "issue_index.yaml"]
+template_files = ["issue_head.yaml"]
+index_template = "issue_index.yaml"
 data_file = "issue_page.md"
 [siteupdater.leaderboard]
 db_table = "usertable"
 file_prefix = "user"
 [db]
 issues_table = "HacktoberIssues"
+issues_table_process = "DataProcessed"
 
 [scheduled_jobs]
 [scheduled_jobs.issue_fetcher]

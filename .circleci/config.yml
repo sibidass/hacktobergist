@@ -21,7 +21,7 @@ jobs:
         python/install-packages:
           app-dir: ~/project/src/main
           pkg-manager: pip
-  build-static:
+  build-ui-contents:
     docker:
       -
         image: "cimg/python:3.8"
@@ -30,19 +30,50 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init --recursive
       -
+        python/install-packages:
+          app-dir: ~/project/src/main
+          pkg-manager: pip
+      -
         run:
           command: |
               sudo apt-get update
               sudo apt-get install hugo
               echo "listing current dir"
-              pwd
-              ls -al
+              python src/main/site_builder.py
               cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
+              echo "" > /tmp/workspace/exclude.lst
           name: "Install hugo"
       -
         persist_to_workspace:
           paths:
             - public_html
+            - exclude.lst
+          root: *workspace_root
+  build-ui:
+    docker:
+      -
+        image: "cimg/python:3.8"
+    steps:
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init --recursive
+      -
+        python/install-packages:
+          app-dir: ~/project/src/main
+          pkg-manager: pip
+      -
+        run:
+          command: |
+              sudo apt-get update
+              sudo apt-get install hugo
+              cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
+              cp ~/project/exclude.lst /tmp/workspace/
+          name: "Install hugo"
+      -
+        persist_to_workspace:
+          paths:
+            - public_html
+            - exclude.lst
           root: *workspace_root
   deploy-serverless:
     docker:
@@ -77,8 +108,16 @@ jobs:
             ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
           name: "Installing rsync"
       - run:
-          command: "rsync -avz /tmp/workspace/public_html $SSH_USER@$SSH_HOST:/tmp/"
+          name: "Creating archive"
+          command: "pushd /tmp/workspace/public_html && zip -r ../public . -x@../exclude.lst && popd"
+      - run:
+          command: "rsync -avz /tmp/workspace/public.zip $SSH_USER@$SSH_HOST:/tmp/"
+          name: "Copy Over SSH"
+      - run:
           name: "Deploy Over SSH"
+          command: |
+            ssh $SSH_USER@$SSH_HOST "unzip -o /tmp/public.zip -d /var/www/html/hacktoberfest/"
+            ssh $SSH_USER@$SSH_HOST "sudo systemctl restart httpd.service"
 
 workflows:
   build-and-deploy:
@@ -91,11 +130,25 @@ workflows:
               only: main
           requires:
             - build
-      - build-static
+      - build-ui-contents:
+          filters:
+            branches:
+              only: ui-content-refresh
+      - build-ui:
+          filters:
+            branches:
+              only: ui
+      -
+        deploy-static:
+          filters:
+            branches:
+              only: ui-content-refresh
+          requires:
+            - build-ui-contents
       -
         deploy-static:
           filters:
             branches:
               only: ui
           requires:
-            - build-static
+            - build-ui
