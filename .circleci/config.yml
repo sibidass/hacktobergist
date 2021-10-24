@@ -47,6 +47,7 @@ jobs:
         persist_to_workspace:
           paths:
             - public_html
+            - exclude.lst
           root: *workspace_root
   build-ui:
     docker:
@@ -72,6 +73,7 @@ jobs:
         persist_to_workspace:
           paths:
             - public_html
+            - exclude.lst
           root: *workspace_root
   deploy-serverless:
     docker:
