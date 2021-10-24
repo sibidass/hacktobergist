@@ -41,11 +41,13 @@ jobs:
               echo "listing current dir"
               python src/main/site_builder.py
               cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
+              echo "" > /tmp/workspace/exclude.lst
           name: "Install hugo"
       -
         persist_to_workspace:
           paths:
             - public_html
+            - exclude.lst
           root: *workspace_root
   build-ui:
     docker:
@@ -65,11 +67,13 @@ jobs:
               sudo apt-get update
               sudo apt-get install hugo
               cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
+              cp ~/project/exclude.lst /tmp/workspace/
           name: "Install hugo"
       -
         persist_to_workspace:
           paths:
             - public_html
+            - exclude.lst
           root: *workspace_root
   deploy-serverless:
     docker:
@@ -105,14 +109,15 @@ jobs:
           name: "Installing rsync"
       - run:
           name: "Creating archive"
-          command: "pushd /tmp/workspace/public_html && zip -r ../public . && popd"
+          command: "pushd /tmp/workspace/public_html && zip -r ../public . -x@../exclude.lst && popd"
       - run:
           command: "rsync -avz /tmp/workspace/public.zip $SSH_USER@$SSH_HOST:/tmp/"
           name: "Copy Over SSH"
       - run:
           name: "Deploy Over SSH"
           command: |
-            ssh $SSH_USER@$SSH_HOST "unzip -o /tmp/public.zip -d /var/www/html/hacktoberfest/ && sudo systemctl restart httpd.service"
+            ssh $SSH_USER@$SSH_HOST "unzip -o /tmp/public.zip -d /var/www/html/hacktoberfest/"
+            ssh $SSH_USER@$SSH_HOST "sudo systemctl restart httpd.service"
 
 workflows:
   build-and-deploy:
