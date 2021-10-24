@@ -21,19 +21,18 @@ def handler(event, context):
             "status": job_resp.get("status"),
             "message": "Issues successfully fetched from github"
         }
-    else:
-        log.info("Processed Info: {}".format(job_resp.get("process_info")))
+    log.info("Processed Info: {}".format(job_resp.get("process_info")))
 
-        # invoke lambda for remaining languages
-        resp = lambda_client.invoke(
-                                  FunctionName=context.function_name,
-                                  InvocationType='Event',
-                                  Payload=json.dumps(event).encode()
-                                  )
-        log.info("New lambda invoked with the payload: {}".format(json.dumps(event)))
-        return {
-            "status": job_resp.get("status"),
-            "total": lang,
-            "process_info": job_resp.get("process_info"),
-            "message": "task partially completed"
-        }
+    # invoke lambda for remaining languages
+    resp = lambda_client.invoke(
+                              FunctionName=context.function_name,
+                              InvocationType='Event',
+                              Payload=json.dumps(event).encode()
+                              )
+    log.info("New lambda invoked with the payload: {}".format(json.dumps(event)))
+    return {
+        "status": job_resp.get("status"),
+        "total": lang,
+        "process_info": job_resp.get("process_info"),
+        "message": "task partially completed"
+    }
