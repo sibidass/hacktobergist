@@ -119,6 +119,7 @@ class IssueFetch(GitHubClient):
                 print("issue fetched {} is less than 1000. stopping probe".format(issues.totalCount))
         except GithubException as e:
             print("Error: {}".format(str(e)))
+            raise e
             if "API rate limit exceeded" in str(e):
                 if self.api_count >= self.rem_limit:
                     print("Next refresh time: {}".format(self.limit_reset_time_human))
@@ -137,8 +138,6 @@ class IssueFetch(GitHubClient):
             elif "Please wait a few minutes before you try again" in str(e):
                 time.sleep(150)
                 hck_issues = self.pop_issues(**filters)
-        # sleeping for 2 secs before another github request
-        time.sleep(SLEEP_TIME)
         return hck_issues
 
     def _construct_query(self, query):

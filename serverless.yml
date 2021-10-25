@@ -84,8 +84,8 @@ package:
 
 functions:
   FetchIssues:
-    handler: src/main/issue_fetcher.handler
-    timeout: 900
+    handler: src/main/issue_fetcher.handler_new
+    timeout: 30
     layers:
       - arn:aws:lambda:ap-south-1:175205145031:layer:Hacktoberfest-Deps:1
     environment:

@@ -51,6 +51,9 @@ class DB(object):
                          )
         return resp.get("Items")
 
+    def get_item(self, expression):
+        return self.client.get_item(Key=expression).get("Item")
+
     def delete(self, expression):
         items_to_delete = self.get(expression)
         p_key, s_key = self._get_primary_key()

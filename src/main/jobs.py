@@ -159,6 +159,29 @@ class IssueFetcherJob(object):
                 processed_info[lang] = resp[0]
         return processed_info
 
+
+class IssueFetcherJobLean(object):
+    """docstring for IssueFetcherJobLean"""
+    def __init__(self, **filters):
+        self.filters = self._apply_filters(**filters)
+
+    @apply_custom_filters
+    def _apply_filters(self, **filters):
+        return json.loads(default_filter_rules)
+
+    def run(self):
+        fetcher = IssueFetch()
+        issues = fetcher.pop_issues(**self.filters)
+        day = self.filters.get("qualifiers")["updated"].split(".")[0]
+        language = self.filters.get("query")["language"]
+        if issues:
+            log.info("Found {} issues for {} on {}".format(len(issues), language, day))
+            self.add_issues_to_db(issues)
+            log.debug("Stored in DB")
+            log.debug("-"*5)
+        else:
+            log.info("no issues found for {} on {}".format(language, day))
+
 class SiteUpdaterIssueJob(object):
     config = config["siteupdater"]
     """docstring for SiteUpdaterJob"""
