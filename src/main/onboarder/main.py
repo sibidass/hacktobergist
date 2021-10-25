@@ -7,9 +7,11 @@ def lambda_handler(event, context):
     languages = list(map(get_val, language.split("&")))
     resp = User(user_id, email).insert_to_db()
     print(resp)
-    response = {}
-    response["statusCode"]=302
-    response["headers"]={'Location': 'http://www.instacodes.net'}
+    response = {
+        'statusCode': 302,
+        'headers': {'Location': 'http://www.instacodes.net'},
+    }
+
     data = {}
     response["body"]=json.dumps(data)
     return response

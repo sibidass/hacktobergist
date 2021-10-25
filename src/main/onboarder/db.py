@@ -13,10 +13,9 @@ class DB(object):
 
     def put(self, items):
         # TODO: write code..
-        resp = self.client.put_item(
+        return self.client.put_item(
             Item=self._clean_data(items),
             )
-        return resp
 
     def _clean_data(self, data):
         for key in data:

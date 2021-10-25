@@ -32,9 +32,7 @@ class User(object):
                           })
 
     def _filter_args(self, filter):
-        preserved = {}
-        for attr in preserve_attrs:
-            preserved[attr] = self.user.pop(attr, None)
+        preserved = {attr: self.user.pop(attr, None) for attr in preserve_attrs}
         for key in self.user:
             if key not in filter:
                 self.user.pop(key, None)
@@ -50,5 +48,4 @@ class User(object):
             })
 
     def insert_to_db(self):
-        db_resp = DB(onboard_table).put(self.user)
-        return db_resp
+        return DB(onboard_table).put(self.user)

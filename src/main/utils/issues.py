@@ -27,8 +27,7 @@ def get_issues(**kwargs):
     # apply everything in kwargs as part of query
     list(map(lambda k: filters["query"].update({k[0]:k[1]}) if(k[0] not in default_filter) else None, kwargs.items()))
     fetch_issues = IssueFetch(**filters)
-    hck_issues = fetch_issues.pop_issues()
-    return hck_issues
+    return fetch_issues.pop_issues()
 
 
 def apply_default(filter_name):
