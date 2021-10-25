@@ -17,6 +17,7 @@ default_filter_rules = """
 
 default_filter = json.loads(default_filter_rules)
 SLEEP_TIME = int(os.environ.get("github_client_sleep_time", 5))
+TOKEN = os.environ.get("GITHUB_TOKEN")
 
 def apply_default(filter_name):
     try:
@@ -27,10 +28,9 @@ def apply_default(filter_name):
 
 class GitHubClient(object):
     """docstring for GitHubClient"""
-    token = os.environ.get("GITHUB_TOKEN")
     user = os.environ.get("GITHUB_USER")
-    g_client = Github(token)
     def __init__(self, per_page=100):
+        self.g_client = Github(TOKEN)
         self.g_client.per_page = per_page
         self.__check_conn()
 

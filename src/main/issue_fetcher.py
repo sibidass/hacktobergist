@@ -52,7 +52,7 @@ def handler_new(event, context):
         else:
             log.info("all languages processed for {}".format(day))
             # send sqs
-            send_msg({"day": next_day})
+            send_msg({"day": next_day.strftime("%Y-%m-%d")})
             return {
                 "status": "InProgress",
                 "ToProcess": next_day
@@ -80,7 +80,7 @@ def send_msg(message):
     sqs = boto3.client("sqs")
     sqs.send_message(
                      QueueUrl=os.environ.get("QueueUrl"),
-                     MessageBody=message
+                     MessageBody=json.dumps(message)
                      )
 
 

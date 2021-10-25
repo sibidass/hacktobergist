@@ -5,10 +5,10 @@ import os
 import unicodedata
 
 import toml
-from utils.db import DB
-from utils.client import IssueFetch
-from utils.logger import get_logger
-from template_builder import Template
+from .utils.db import DB
+from .utils.client import IssueFetch
+from .utils.logger import get_logger
+from .template_builder import Template
 
 
 default_filter_rules = """
