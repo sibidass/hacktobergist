@@ -157,7 +157,7 @@ class IssueFetcherJob(object):
         return processed_info
 
 
-class IssueFetcherJobLean(object):
+class IssueFetcherJobLean(IssueFetcherJob):
     """docstring for IssueFetcherJobLean"""
     def __init__(self, **filters):
         self.filters = self._apply_filters(**filters)

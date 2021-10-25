@@ -91,7 +91,6 @@ class IssueFetch(GitHubClient):
             print(qualifiers)
             self.api_count += 1
             issues = self.g_client.search_issues(query=self._construct_query(query), sort="updated", order="asc", **qualifiers)
-            print("got {} issues".format(issues.totalCount))
             for item in issues:
                 hck_issue = HacktoberIssue(**{
                                            "id":item.id,
@@ -117,6 +116,8 @@ class IssueFetch(GitHubClient):
             else:
                 print("issue fetched {} is less than 1000. stopping probe".format(issues.totalCount))
         except GithubException as e:
+            if "Validation Failed"  in str(e) and "missing" in str(e):
+                return hck_issues
             print("Error: {}".format(str(e)))
             raise e
             if "API rate limit exceeded" in str(e):

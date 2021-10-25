@@ -5,7 +5,7 @@ import os
 import boto3
 from src.main.utils.logger import get_logger
 from src.main.utils.db import DB
-from src.main.jobs import IssueFetcherJob, ALL_LANG, config
+from src.main.jobs import IssueFetcherJob, IssueFetcherJobLean, ALL_LANG, config
 
 log = get_logger(__name__)
 schedule_config = config["scheduled_jobs"]
@@ -45,7 +45,7 @@ def handler_new(event, context):
     if not filters:
         next_day = datetime.strptime(day, "%Y-%m-%d")+timedelta(days=1)
         if next_day > datetime.now():
-            log.info("process completed"):
+            log.info("process completed")
             return {
                 "status": "complete"
             }
@@ -65,11 +65,11 @@ def handler_new(event, context):
         db.put({
                "language": filters.get("language"),
                "date": day,
-               "processed": True
+               "processed": True,
                "processed_on": datetime.now().strftime("%Y-%m-%d")
                })
     except Exception as e:
-        log.error("Error processing {} for {}".format(filters.get("language"), day))
+        log.error("Error processing {} for {}. Error: {}".format(filters.get("language"), day, str(e)))
     send_msg({"day": day})
     return {
         "status": "InProgress",
@@ -98,7 +98,7 @@ class Event(object):
             filters = {
             "language": lang,
             "qualifiers": {
-            "updated": "{}..{}".format(date, date)
+            "updated": "{}..{}".format(self.date, self.date)
             }
             }
             return filters
