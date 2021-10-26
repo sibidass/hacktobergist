@@ -1,7 +1,6 @@
 from time import sleep
 import toml
 
-from scheduler import Scheduler
 from utils.logger import get_logger
 from jobs import ALL_LANG, SiteUpdaterIssueJob
 

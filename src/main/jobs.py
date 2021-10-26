@@ -277,6 +277,3 @@ class SiteUpdaterIssueJob(object):
         formatted_text = "".join(ch for ch in new_text if unicodedata.category(ch)[0]!="C")
         return '"' + formatted_text + '"'
 
-if __name__ == '__main__':
-    log.info("Test from jobs module")
-    test_logger()
