@@ -113,8 +113,6 @@ class IssueFetch(GitHubClient):
                     end_date = ""
                 self.qualifiers["updated"] = "{}..{}".format(last_updated.strftime("%Y-%m-%dT%H:%M:%S"), end_date)
                 hck_issues.extend(self.pop_issues())
-            else:
-                print("issue fetched {} is less than 1000. stopping probe".format(issues.totalCount))
         except GithubException as e:
             if "Validation Failed"  in str(e) and "missing" in str(e):
                 return hck_issues

@@ -55,7 +55,7 @@ def handler_new(event, context):
             send_msg({"day": next_day.strftime("%Y-%m-%d")})
             return {
                 "status": "InProgress",
-                "ToProcess": next_day
+                "ToProcess": next_day.strftime("%Y-%m-%d")
             }
 
     job = IssueFetcherJobLean(**filters)
