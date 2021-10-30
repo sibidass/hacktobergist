@@ -40,7 +40,7 @@ jobs:
               sudo apt-get install hugo
               echo "listing current dir"
               python src/main/site_builder.py
-              cd ~/project/ui/hacktober.instacodes.net && hugo -d /tmp/workspace/public_html
+              cd ~/project/ui/hacktober.instacodes.net && hugo --print-mem -d /tmp/workspace/public_html
               echo "" > /tmp/workspace/exclude.lst
           name: "Install hugo"
       -
